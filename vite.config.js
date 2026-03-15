@@ -9,6 +9,11 @@ export default defineConfig({
         target: 'http://100.67.209.116:50000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/f5api': {
+        target: 'http://100.67.209.116:7860',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/f5api/, ''),
       }
     }
   },

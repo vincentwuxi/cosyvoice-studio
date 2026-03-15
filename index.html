@@ -62,6 +62,19 @@
     <main class="main-content">
       <!-- Zero-Shot Panel -->
       <section class="tab-panel active" id="panel-zero-shot">
+        <!-- Engine Selector -->
+        <div class="engine-selector" id="engineSelector">
+          <span class="engine-label">合成引擎</span>
+          <div class="engine-toggle">
+            <button class="engine-btn active" data-engine="cosyvoice">
+              <span class="engine-icon">🎯</span> CosyVoice
+            </button>
+            <button class="engine-btn" data-engine="f5tts">
+              <span class="engine-icon">⚡</span> F5-TTS
+            </button>
+          </div>
+          <span class="engine-status" id="engineStatus"></span>
+        </div>
         <div class="panel-grid">
           <div class="panel-card input-card">
             <h2 class="card-title"><span class="card-icon">🎧</span>音色参考</h2>
@@ -101,6 +114,25 @@
             <div class="form-group">
               <label class="form-label">参考音频对应的文字内容</label>
               <textarea class="form-textarea" id="zeroShotPromptText" rows="2" placeholder="请输入参考音频中说话者所说的文字内容..."></textarea>
+              <p class="form-hint f5-hint hidden" id="f5RefTextHint">💡 F5-TTS: 留空可自动识别（Whisper 转录）</p>
+            </div>
+            <!-- F5-TTS Advanced Params -->
+            <div class="f5-params hidden" id="f5Params">
+              <h3 class="params-title">⚙️ F5-TTS 参数</h3>
+              <div class="param-row">
+                <label class="param-label">语速 <span class="param-value" id="f5SpeedVal">1.0x</span></label>
+                <input type="range" class="param-slider" id="f5Speed" min="0.3" max="2.0" step="0.1" value="1.0" />
+              </div>
+              <div class="param-row">
+                <label class="param-label">NFE 步数 <span class="param-value" id="f5NfeVal">32</span></label>
+                <input type="range" class="param-slider" id="f5Nfe" min="4" max="64" step="2" value="32" />
+              </div>
+              <div class="param-row">
+                <label class="param-check">
+                  <input type="checkbox" id="f5RemoveSilence" />
+                  <span>去除静音段</span>
+                </label>
+              </div>
             </div>
           </div>
           <div class="panel-card output-card">
@@ -117,6 +149,7 @@
             </button>
             <div class="result-area hidden" id="zeroShotResult">
               <div class="result-player" id="zeroShotPlayer"></div>
+              <div class="result-engine-badge" id="resultEngineBadge"></div>
             </div>
           </div>
         </div>

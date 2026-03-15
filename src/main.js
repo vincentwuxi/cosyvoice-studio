@@ -5,6 +5,7 @@
  */
 import './style.css';
 import { checkServer, getServerInfo, callSFT, callZeroShot, callCrossLingual, callInstruct2 } from './api.js';
+import { checkF5Server, callF5TTS } from './f5api.js';
 import { AudioRecorder } from './recorder.js';
 import { AudioPlayer } from './player.js';
 import { saveToHistory, getHistoryList, getAudioBlob, formatHistoryTime, getModeLabel } from './history.js';
@@ -17,6 +18,7 @@ import { wavToMp3, generateFileName } from './format.js';
 // ============================
 const MAX_RECORD_SECONDS = 15;
 const WARN_RECORD_SECONDS = 10;
+let currentEngine = 'cosyvoice'; // 'cosyvoice' | 'f5tts'
 
 // Endpoint → tab mapping for smart mode detection
 const ENDPOINT_TAB_MAP = {
@@ -84,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTextTemplates();
   initBatchMode();
   initFormatSelector();
+  initEngineSelector();
 
   // Async: server check + smart mode detection + dynamic speakers
   await initServerCheck();
@@ -116,6 +119,9 @@ async function initServerCheck() {
     el.classList.add('offline');
     el.classList.remove('online');
     textEl.textContent = '服务离线';
+
+    // Also check F5-TTS even if CosyVoice is offline
+    checkF5ServerStatus();
   }
 }
 
@@ -167,6 +173,62 @@ function renderDynamicSpeakers(spkIds) {
 
   // Re-bind click events
   initSpeakerGrids();
+}
+
+// ============================
+// Engine Selector (CosyVoice ↔ F5-TTS)
+// ============================
+function initEngineSelector() {
+  const btns = document.querySelectorAll('.engine-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentEngine = btn.dataset.engine;
+
+      // Toggle F5 params visibility
+      const f5Params = document.getElementById('f5Params');
+      const f5Hint = document.getElementById('f5RefTextHint');
+      const genBtnText = document.querySelector('#zeroShotGenBtn .btn-text');
+      
+      if (currentEngine === 'f5tts') {
+        f5Params?.classList.remove('hidden');
+        f5Hint?.classList.remove('hidden');
+        if (genBtnText) genBtnText.textContent = '⚡ F5-TTS 生成';
+      } else {
+        f5Params?.classList.add('hidden');
+        f5Hint?.classList.add('hidden');
+        if (genBtnText) genBtnText.textContent = '🚀 生成克隆语音';
+      }
+    });
+  });
+
+  // F5 slider value display
+  const speedSlider = document.getElementById('f5Speed');
+  const nfeSlider = document.getElementById('f5Nfe');
+  speedSlider?.addEventListener('input', () => {
+    document.getElementById('f5SpeedVal').textContent = `${speedSlider.value}x`;
+  });
+  nfeSlider?.addEventListener('input', () => {
+    document.getElementById('f5NfeVal').textContent = nfeSlider.value;
+  });
+
+  // Check F5-TTS server on init
+  checkF5ServerStatus();
+}
+
+async function checkF5ServerStatus() {
+  const statusEl = document.getElementById('engineStatus');
+  if (!statusEl) return;
+
+  const f5Online = await checkF5Server();
+  if (f5Online) {
+    statusEl.textContent = 'F5-TTS ✓';
+    statusEl.className = 'engine-status online';
+  } else {
+    statusEl.textContent = 'F5-TTS ✗';
+    statusEl.className = 'engine-status offline';
+  }
 }
 
 // ============================
@@ -415,13 +477,42 @@ function initGenerateButtons() {
     const promptWav = audioFiles['zero-shot'];
 
     if (!ttsText) return showToast('请输入要合成的文字', 'error');
-    if (!promptText) return showToast('请输入参考音频对应的文字', 'error');
     if (!promptWav) return showToast('请上传或录制参考音频', 'error');
 
-    await generateAudio('zero-shot', () => callZeroShot(ttsText, promptText, promptWav, updateProgress), {
-      text: ttsText,
-      promptText,
-    });
+    if (currentEngine === 'f5tts') {
+      // F5-TTS: promptText is optional (Whisper auto-transcribe)
+      const speed = parseFloat(document.getElementById('f5Speed')?.value || '1.0');
+      const nfeSteps = parseInt(document.getElementById('f5Nfe')?.value || '32');
+      const removeSilence = document.getElementById('f5RemoveSilence')?.checked || false;
+
+      await generateAudio('zero-shot', () => callF5TTS(promptWav, promptText, ttsText, { speed, nfeSteps, removeSilence }), {
+        text: ttsText,
+        promptText: promptText || '(auto)',
+        engine: 'f5tts',
+      });
+
+      // Show engine badge
+      const badge = document.getElementById('resultEngineBadge');
+      if (badge) {
+        badge.textContent = '⚡ F5-TTS';
+        badge.className = 'result-engine-badge f5tts';
+      }
+    } else {
+      // CosyVoice: promptText required
+      if (!promptText) return showToast('请输入参考音频对应的文字', 'error');
+
+      await generateAudio('zero-shot', () => callZeroShot(ttsText, promptText, promptWav, updateProgress), {
+        text: ttsText,
+        promptText,
+        engine: 'cosyvoice',
+      });
+
+      const badge = document.getElementById('resultEngineBadge');
+      if (badge) {
+        badge.textContent = '🎯 CosyVoice';
+        badge.className = 'result-engine-badge cosyvoice';
+      }
+    }
   });
 
   // SFT
