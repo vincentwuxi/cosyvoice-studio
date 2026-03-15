@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CosyVoice Studio — AI 声音克隆工作站</title>
+  <meta name="description" content="基于 CosyVoice 的 AI 声音克隆与语音合成 Web 应用" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="14" stroke="url(#logo-grad)" stroke-width="2"/>
+              <path d="M10 20V12C10 12 13 8 16 8C19 8 22 12 22 12V20" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M8 18H24" stroke="url(#logo-grad)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+              <path d="M10 22H22" stroke="url(#logo-grad)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+              <defs>
+                <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32">
+                  <stop stop-color="#818cf8"/>
+                  <stop offset="1" stop-color="#34d399"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h1>CosyVoice <span class="accent">Studio</span></h1>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="server-status" id="serverStatus">
+          <span class="status-dot"></span>
+          <span class="status-text">检测中...</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="zero-shot">
+        <span class="tab-icon">🎤</span>
+        <span class="tab-label">声音克隆</span>
+      </button>
+      <button class="tab-btn" data-tab="sft">
+        <span class="tab-icon">🗣️</span>
+        <span class="tab-label">预设音色</span>
+      </button>
+      <button class="tab-btn" data-tab="cross-lingual">
+        <span class="tab-icon">🌍</span>
+        <span class="tab-label">跨语言合成</span>
+      </button>
+      <button class="tab-btn" data-tab="instruct2">
+        <span class="tab-icon">✨</span>
+        <span class="tab-label">指令控制</span>
+      </button>
+    </nav>
+
+    <main class="main-content">
+      <!-- Zero-Shot Panel -->
+      <section class="tab-panel active" id="panel-zero-shot">
+        <div class="panel-grid">
+          <div class="panel-card input-card">
+            <h2 class="card-title"><span class="card-icon">🎧</span>音色参考</h2>
+            <p class="card-desc">上传或录制一段 3-10 秒的参考音频，AI 将学习该音色</p>
+            <div class="voice-lib-picker" data-mode="zero-shot">
+              <label class="form-label">📚 已保存的声音</label>
+              <div class="voice-lib-grid" id="zeroShotVoiceGrid"></div>
+            </div>
+            <div class="audio-source" id="zeroShotAudioSource">
+              <div class="upload-zone" id="zeroShotUpload">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                </div>
+                <p>拖拽音频文件到此处，或 <span class="upload-link">点击上传</span></p>
+                <p class="upload-hint">支持 WAV / MP3 / OGG，建议 3~10 秒</p>
+                <input type="file" id="zeroShotFileInput" accept="audio/*" hidden />
+              </div>
+              <div class="divider-text">或者</div>
+              <button class="record-btn" id="zeroShotRecordBtn">
+                <span class="record-dot"></span>
+                <span>录制音频</span>
+              </button>
+              <div class="recording-ui hidden" id="zeroShotRecordingUI">
+                <div class="recording-wave"><canvas id="zeroShotWaveCanvas" width="300" height="60"></canvas></div>
+                <div class="recording-time" id="zeroShotRecordTime">00:00</div>
+                <button class="stop-record-btn" id="zeroShotStopBtn">停止录制</button>
+              </div>
+              <div class="audio-preview hidden" id="zeroShotPreview">
+                <div class="preview-name" id="zeroShotFileName"></div>
+                <audio id="zeroShotAudio" controls></audio>
+                <button class="btn-icon remove-audio" id="zeroShotRemove" title="移除">✕</button>
+                <button class="btn-icon save-voice-btn" id="zeroShotSaveVoice" title="保存到声音库">💾</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">参考音频对应的文字内容</label>
+              <textarea class="form-textarea" id="zeroShotPromptText" rows="2" placeholder="请输入参考音频中说话者所说的文字内容..."></textarea>
+            </div>
+          </div>
+          <div class="panel-card output-card">
+            <h2 class="card-title"><span class="card-icon">💬</span>合成内容</h2>
+            <div class="form-group">
+              <label class="form-label">要用克隆音色说的文字</label>
+              <div class="template-chips" id="zeroShotTemplates"></div>
+              <textarea class="form-textarea large" id="zeroShotTtsText" rows="5" placeholder="输入你想让 AI 用该音色说的话..."></textarea>
+              <div class="char-count"><span id="zeroShotCharCount">0</span> 字</div>
+            </div>
+            <button class="generate-btn" id="zeroShotGenBtn">
+              <span class="btn-shimmer"></span>
+              <span class="btn-text">🚀 生成克隆语音</span>
+            </button>
+            <div class="result-area hidden" id="zeroShotResult">
+              <div class="result-player" id="zeroShotPlayer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SFT Panel -->
+      <section class="tab-panel" id="panel-sft">
+        <div class="panel-grid single">
+          <div class="panel-card">
+            <h2 class="card-title"><span class="card-icon">🗣️</span>预设音色合成</h2>
+            <p class="card-desc">选择预设的说话人音色，快速生成高质量语音</p>
+            <div class="form-group">
+              <label class="form-label">选择音色</label>
+              <div class="speaker-grid" id="sftSpeakerGrid">
+                <button class="speaker-chip active" data-spk="中文女">👩 中文女</button>
+                <button class="speaker-chip" data-spk="中文男">👨 中文男</button>
+                <button class="speaker-chip" data-spk="日语男">🇯🇵 日语男</button>
+                <button class="speaker-chip" data-spk="粤语女">🇭🇰 粤语女</button>
+                <button class="speaker-chip" data-spk="英文女">🇺🇸 英文女</button>
+                <button class="speaker-chip" data-spk="英文男">🇬🇧 英文男</button>
+                <button class="speaker-chip" data-spk="韩语女">🇰🇷 韩语女</button>
+              </div>
+            </div>
+
+            <!-- Mode Toggle: Single / Batch -->
+            <div class="mode-toggle">
+              <button class="mode-btn active" data-mode="single" id="sftModeSingle">📝 单条生成</button>
+              <button class="mode-btn" data-mode="batch" id="sftModeBatch">📋 批量生成</button>
+            </div>
+
+            <!-- Single Mode -->
+            <div id="sftSingleMode">
+              <div class="form-group">
+                <label class="form-label">合成文本</label>
+                <div class="template-chips" id="sftTemplates"></div>
+                <textarea class="form-textarea large" id="sftTtsText" rows="5" placeholder="输入你想合成的文字内容..."></textarea>
+                <div class="char-count"><span id="sftCharCount">0</span> 字</div>
+              </div>
+              <button class="generate-btn" id="sftGenBtn">
+                <span class="btn-shimmer"></span>
+                <span class="btn-text">🚀 生成语音</span>
+              </button>
+              <div class="result-area hidden" id="sftResult">
+                <div class="result-player" id="sftPlayer"></div>
+              </div>
+            </div>
+
+            <!-- Batch Mode -->
+            <div id="sftBatchMode" class="hidden">
+              <div class="form-group">
+                <label class="form-label">批量文本 <span class="label-hint">每行一条，空行自动跳过</span></label>
+                <textarea class="form-textarea large" id="sftBatchText" rows="8" placeholder="第一条要合成的文本&#10;第二条要合成的文本&#10;第三条要合成的文本&#10;...每行一条"></textarea>
+                <div class="batch-info">
+                  <span id="sftBatchCount">0 条</span>
+                  <span id="sftBatchEstimate"></span>
+                </div>
+              </div>
+
+              <!-- Output Format -->
+              <div class="form-group">
+                <label class="form-label">输出格式</label>
+                <div class="format-selector">
+                  <button class="format-btn active" data-format="wav">🎵 WAV <span class="format-hint">无损</span></button>
+                  <button class="format-btn" data-format="mp3">🎧 MP3 <span class="format-hint">更小</span></button>
+                </div>
+              </div>
+
+              <button class="generate-btn batch" id="sftBatchGenBtn">
+                <span class="btn-shimmer"></span>
+                <span class="btn-text">📦 批量生成并打包下载</span>
+              </button>
+
+              <!-- Batch Progress -->
+              <div class="batch-progress hidden" id="sftBatchProgress">
+                <div class="batch-progress-bar">
+                  <div class="batch-progress-fill" id="sftBatchProgressFill"></div>
+                </div>
+                <div class="batch-progress-text" id="sftBatchProgressText">准备中...</div>
+                <div class="batch-item-list" id="sftBatchItemList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cross-Lingual Panel -->
+      <section class="tab-panel" id="panel-cross-lingual">
+        <div class="panel-grid">
+          <div class="panel-card input-card">
+            <h2 class="card-title"><span class="card-icon">🎧</span>音色参考</h2>
+            <p class="card-desc">上传或录制参考音频，AI 将用该音色说目标语言的文字</p>
+            <div class="voice-lib-picker" data-mode="cross-lingual">
+              <label class="form-label">📚 已保存的声音</label>
+              <div class="voice-lib-grid" id="crossLingualVoiceGrid"></div>
+            </div>
+            <div class="audio-source" id="crossLingualAudioSource">
+              <div class="upload-zone" id="crossLingualUpload">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                </div>
+                <p>拖拽音频文件，或 <span class="upload-link">点击上传</span></p>
+                <input type="file" id="crossLingualFileInput" accept="audio/*" hidden />
+              </div>
+              <div class="divider-text">或者</div>
+              <button class="record-btn" id="crossLingualRecordBtn">
+                <span class="record-dot"></span>
+                <span>录制音频</span>
+              </button>
+              <div class="recording-ui hidden" id="crossLingualRecordingUI">
+                <div class="recording-wave"><canvas id="crossLingualWaveCanvas" width="300" height="60"></canvas></div>
+                <div class="recording-time" id="crossLingualRecordTime">00:00</div>
+                <button class="stop-record-btn" id="crossLingualStopBtn">停止录制</button>
+              </div>
+              <div class="audio-preview hidden" id="crossLingualPreview">
+                <div class="preview-name" id="crossLingualFileName"></div>
+                <audio id="crossLingualAudio" controls></audio>
+                <button class="btn-icon remove-audio" id="crossLingualRemove" title="移除">✕</button>
+                <button class="btn-icon save-voice-btn" id="crossLingualSaveVoice" title="保存到声音库">💾</button>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card output-card">
+            <h2 class="card-title"><span class="card-icon">🌍</span>跨语言文本</h2>
+            <p class="card-desc">输入目标语言的文字，AI 将用参考音色朗读</p>
+            <div class="form-group">
+              <label class="form-label">目标文本</label>
+              <div class="template-chips" id="crossLingualTemplates"></div>
+              <textarea class="form-textarea large" id="crossLingualTtsText" rows="5" placeholder="输入任意语言文字，AI 将用参考音色说出来..."></textarea>
+              <div class="char-count"><span id="crossLingualCharCount">0</span> 字</div>
+            </div>
+            <button class="generate-btn" id="crossLingualGenBtn">
+              <span class="btn-shimmer"></span>
+              <span class="btn-text">🚀 跨语言合成</span>
+            </button>
+            <div class="result-area hidden" id="crossLingualResult">
+              <div class="result-player" id="crossLingualPlayer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Instruct2 Panel -->
+      <section class="tab-panel" id="panel-instruct2">
+        <div class="panel-grid">
+          <div class="panel-card input-card">
+            <h2 class="card-title"><span class="card-icon">🎧</span>音色参考</h2>
+            <p class="card-desc">上传参考音频，结合指令精细控制合成效果</p>
+            <div class="voice-lib-picker" data-mode="instruct2">
+              <label class="form-label">📚 已保存的声音</label>
+              <div class="voice-lib-grid" id="instruct2VoiceGrid"></div>
+            </div>
+            <div class="audio-source" id="instruct2AudioSource">
+              <div class="upload-zone" id="instruct2Upload">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  </svg>
+                </div>
+                <p>拖拽音频文件，或 <span class="upload-link">点击上传</span></p>
+                <input type="file" id="instruct2FileInput" accept="audio/*" hidden />
+              </div>
+              <div class="divider-text">或者</div>
+              <button class="record-btn" id="instruct2RecordBtn">
+                <span class="record-dot"></span>
+                <span>录制音频</span>
+              </button>
+              <div class="recording-ui hidden" id="instruct2RecordingUI">
+                <div class="recording-wave"><canvas id="instruct2WaveCanvas" width="300" height="60"></canvas></div>
+                <div class="recording-time" id="instruct2RecordTime">00:00</div>
+                <button class="stop-record-btn" id="instruct2StopBtn">停止录制</button>
+              </div>
+              <div class="audio-preview hidden" id="instruct2Preview">
+                <div class="preview-name" id="instruct2FileName"></div>
+                <audio id="instruct2Audio" controls></audio>
+                <button class="btn-icon remove-audio" id="instruct2Remove" title="移除">✕</button>
+                <button class="btn-icon save-voice-btn" id="instruct2SaveVoice" title="保存到声音库">💾</button>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card output-card">
+            <h2 class="card-title"><span class="card-icon">✨</span>指令 + 合成</h2>
+            <div class="form-group">
+              <label class="form-label">语音指令</label>
+              <textarea class="form-textarea" id="instruct2InstructText" rows="2" placeholder="例如：用开心的语气说，语速稍快"></textarea>
+              <div class="instruct-chips">
+                <button class="instruct-chip" data-text="用开心的语气说">😊 开心</button>
+                <button class="instruct-chip" data-text="用悲伤的语气说，语速放慢">😢 悲伤</button>
+                <button class="instruct-chip" data-text="用愤怒的语气说">😠 愤怒</button>
+                <button class="instruct-chip" data-text="用低沉神秘的声音说">🕵️ 神秘</button>
+                <button class="instruct-chip" data-text="用播音员的专业语调说">📺 播音</button>
+                <button class="instruct-chip" data-text="用温柔轻声地说">🤫 温柔</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">合成文本</label>
+              <div class="template-chips" id="instruct2Templates"></div>
+              <textarea class="form-textarea large" id="instruct2TtsText" rows="4" placeholder="输入要合成的文字..."></textarea>
+              <div class="char-count"><span id="instruct2CharCount">0</span> 字</div>
+            </div>
+            <button class="generate-btn" id="instruct2GenBtn">
+              <span class="btn-shimmer"></span>
+              <span class="btn-text">🚀 指令克隆合成</span>
+            </button>
+            <div class="result-area hidden" id="instruct2Result">
+              <div class="result-player" id="instruct2Player"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="history-sidebar hidden" id="historySidebar">
+      <div class="history-header">
+        <h3>📜 历史记录</h3>
+        <button class="btn-icon" id="closeHistory">✕</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </aside>
+
+    <button class="history-fab" id="historyFab" title="历史记录">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </button>
+
+    <div class="loading-overlay hidden" id="loadingOverlay">
+      <div class="loading-content">
+        <div class="loading-wave">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <p class="loading-text">AI 正在生成语音...</p>
+        <p class="loading-sub" id="loadingStatus">请稍候，可能需要几秒到一分钟</p>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="saveVoiceModal">
+      <div class="modal-card">
+        <h3 class="modal-title">💾 保存到声音库</h3>
+        <p class="modal-desc">为这个声音取个名字，下次可以直接调用</p>
+        <div class="form-group">
+          <label class="form-label">声音名称</label>
+          <input type="text" class="form-input" id="saveVoiceName" placeholder="例如：小明的声音、温柔女声" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">标签 <span class="label-hint">可选，用逗号分隔</span></label>
+          <input type="text" class="form-input" id="saveVoiceTags" placeholder="例如：广告配音, 角色A, 温柔" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">对应文字 <span class="label-hint">可选，用于 Zero-Shot 模式</span></label>
+          <textarea class="form-textarea" id="saveVoicePromptText" rows="2" placeholder="参考音频中说的话..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" id="saveVoiceCancel">取消</button>
+          <button class="modal-btn confirm" id="saveVoiceConfirm">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
