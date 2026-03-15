@@ -34,6 +34,7 @@ const TEXT_TEMPLATES = {
     { label: '🇨🇳 中文示例', text: '在这个信息爆炸的时代，我们需要更加冷静地思考，用理性的光芒照亮前行的道路。' },
     { label: '🇺🇸 English', text: 'In a world full of noise, the ability to think clearly and communicate effectively is more valuable than ever.' },
     { label: '🇯🇵 日本語', text: 'テクノロジーの進化は、私たちの生活を根本から変えつつあります。' },
+    { label: '🇩🇪 Deutsch', text: 'In einer Welt voller Veränderungen ist die Fähigkeit, klar zu denken und effektiv zu kommunizieren, wertvoller denn je.' },
   ],
   'sft': [
     { label: '🇨🇳 新闻播报', text: '各位观众大家好，欢迎收看今天的新闻联播。今天的主要内容有：科技创新驱动高质量发展。' },
@@ -45,6 +46,7 @@ const TEXT_TEMPLATES = {
     { label: '🇺🇸 English', text: 'Hello everyone, welcome to CosyVoice Studio. This is a cross-lingual synthesis demonstration.' },
     { label: '🇨🇳 中文', text: '大家好，这是一段跨语言合成的演示文本，AI 将用参考音频的声音来朗读这段话。' },
     { label: '🇫🇷 Français', text: 'Bonjour à tous, bienvenue dans CosyVoice Studio. Ceci est une démonstration de synthèse multilingue.' },
+    { label: '🇩🇪 Deutsch', text: 'Hallo zusammen, willkommen im CosyVoice Studio. Dies ist eine Demonstration der mehrsprachigen Sprachsynthese.' },
   ],
   'instruct2': [
     { label: '🇨🇳 正式', text: '尊敬的各位来宾，欢迎参加本次人工智能技术研讨会。今天我们将共同探讨语音合成技术的最新进展。' },
