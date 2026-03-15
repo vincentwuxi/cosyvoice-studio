@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
+import voicesPlugin from './vite-plugin-voices.js'
 
 export default defineConfig({
+  plugins: [voicesPlugin()],
   server: {
     port: 5173,
     open: false,

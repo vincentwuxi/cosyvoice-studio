@@ -9,7 +9,7 @@ import { checkF5Server, callF5TTS } from './f5api.js';
 import { AudioRecorder } from './recorder.js';
 import { AudioPlayer } from './player.js';
 import { saveToHistory, getHistoryList, getAudioBlob, formatHistoryTime, getModeLabel } from './history.js';
-import { saveVoiceProfile, getVoiceList, getVoiceAudio, getVoiceById, deleteVoiceProfile } from './voicelib.js';
+import { saveVoiceProfile, getVoiceList, getVoiceAudio, getVoiceById, deleteVoiceProfile, syncFromFilesystem, exportVoiceLibrary, importVoiceLibrary } from './voicelib.js';
 import { runBatch, downloadBatchAsZip, estimateDuration } from './batch.js';
 import { wavToMp3, generateFileName } from './format.js';
 
@@ -855,7 +855,16 @@ function escapeHtml(str) {
 // Voice Library
 // ============================
 function initVoiceLibrary() {
-  refreshAllVoiceGrids();
+  // Sync from filesystem first (restores voices after cache clear)
+  syncFromFilesystem().then(restored => {
+    if (restored > 0) {
+      showToast(`🔄 从文件系统恢复了 ${restored} 个声音`, 'success');
+    }
+    refreshAllVoiceGrids();
+  }).catch(err => {
+    console.warn('[voicelib] sync failed:', err);
+    refreshAllVoiceGrids();
+  });
 
   document.getElementById('saveVoiceCancel').addEventListener('click', () => {
     document.getElementById('saveVoiceModal').classList.add('hidden');
@@ -891,6 +900,54 @@ function initVoiceLibrary() {
       saveVoiceContext = null;
     }
   });
+
+  // Export voice library
+  const exportBtn = document.getElementById('voiceLibExport');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', async () => {
+      try {
+        exportBtn.disabled = true;
+        exportBtn.textContent = '⏳ 导出中...';
+        const zipBlob = await exportVoiceLibrary();
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cosyvoice_voices_${new Date().toISOString().slice(0, 10)}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('✅ 声音库已导出', 'success');
+      } catch (err) {
+        showToast(`导出失败: ${err.message}`, 'error');
+      } finally {
+        exportBtn.disabled = false;
+        exportBtn.textContent = '📤 导出';
+      }
+    });
+  }
+
+  // Import voice library
+  const importBtn = document.getElementById('voiceLibImport');
+  const importInput = document.getElementById('voiceLibImportFile');
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        importBtn.disabled = true;
+        importBtn.textContent = '⏳ 导入中...';
+        const result = await importVoiceLibrary(file);
+        showToast(`✅ 导入完成：${result.imported} 个新增，${result.skipped} 个跳过`, 'success');
+        refreshAllVoiceGrids();
+      } catch (err) {
+        showToast(`导入失败: ${err.message}`, 'error');
+      } finally {
+        importBtn.disabled = false;
+        importBtn.textContent = '📥 导入';
+        importInput.value = '';
+      }
+    });
+  }
 }
 
 function refreshAllVoiceGrids() {

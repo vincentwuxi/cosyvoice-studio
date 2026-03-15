@@ -1074,6 +1074,45 @@ body::before {
   margin-bottom: var(--space-md);
 }
 
+.voice-lib-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+}
+
+.voice-lib-header .form-label {
+  margin-bottom: 0;
+}
+
+.voice-lib-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.voice-lib-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.voice-lib-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.voice-lib-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .voice-lib-grid {
   display: flex;
   flex-wrap: wrap;

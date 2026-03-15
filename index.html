@@ -80,7 +80,14 @@
             <h2 class="card-title"><span class="card-icon">🎧</span>音色参考</h2>
             <p class="card-desc">上传或录制一段 3-10 秒的参考音频，AI 将学习该音色</p>
             <div class="voice-lib-picker" data-mode="zero-shot">
-              <label class="form-label">📚 已保存的声音</label>
+              <div class="voice-lib-header">
+                <label class="form-label">📚 已保存的声音</label>
+                <div class="voice-lib-actions">
+                  <button class="voice-lib-btn" id="voiceLibExport" title="导出声音库">📤 导出</button>
+                  <button class="voice-lib-btn" id="voiceLibImport" title="导入声音库">📥 导入</button>
+                  <input type="file" id="voiceLibImportFile" accept=".zip" hidden />
+                </div>
+              </div>
               <div class="voice-lib-grid" id="zeroShotVoiceGrid"></div>
             </div>
             <div class="audio-source" id="zeroShotAudioSource">
