@@ -124,9 +124,20 @@ async function initServerCheck() {
     // Dynamic speaker grid
     if (serverInfo.available_spk_ids?.length > 0) {
       renderDynamicSpeakers(serverInfo.available_spk_ids);
-      // Init dialogue mode with available speakers
       initDialogueMode(serverInfo.available_spk_ids);
     } else {
+      // No preset speakers — disable SFT tab
+      const sftBtn = document.querySelector('.tab-btn[data-tab="sft"]');
+      if (sftBtn) {
+        sftBtn.classList.add('disabled');
+        sftBtn.title = '当前模型无预设音色';
+        sftBtn.addEventListener('click', (e) => {
+          if (sftBtn.classList.contains('disabled')) {
+            e.stopImmediatePropagation();
+            showToast(`${modelName} 不包含预设音色，请使用声音克隆或指令控制模式`, 'error');
+          }
+        }, true);
+      }
       initDialogueMode([]);
     }
   } else {
