@@ -57,6 +57,10 @@
         <span class="tab-icon">✨</span>
         <span class="tab-label">指令控制</span>
       </button>
+      <button class="tab-btn" data-tab="dialogue">
+        <span class="tab-icon">🎭</span>
+        <span class="tab-label">多人对话</span>
+      </button>
     </nav>
 
     <main class="main-content">
@@ -380,6 +384,23 @@
                 <button class="instruct-chip" data-text="用低沉神秘的声音说">🕵️ 神秘</button>
                 <button class="instruct-chip" data-text="用播音员的专业语调说">📺 播音</button>
                 <button class="instruct-chip" data-text="用温柔轻声地说">🤫 温柔</button>
+                <button class="instruct-chip" data-text="用耳语的方式说">🤐 耳语</button>
+                <button class="instruct-chip" data-text="用大声且充满激情的语气说">📢 大声</button>
+                <button class="instruct-chip" data-text="用严肃正式的语气说">🎓 严肃</button>
+                <button class="instruct-chip" data-text="用充满感情地朗诵">🎭 朗诵</button>
+                <button class="instruct-chip" data-text="用撒娇可爱的语气说">🥺 撒娇</button>
+                <button class="instruct-chip" data-text="用惊讶兴奋的语气说">😲 惊讶</button>
+              </div>
+              <div class="emotion-tag-bar">
+                <span class="emotion-tag-label">💡 插入标签到文本：</span>
+                <button class="emotion-tag" data-tag="[开心]">😊</button>
+                <button class="emotion-tag" data-tag="[悲伤]">😢</button>
+                <button class="emotion-tag" data-tag="[愤怒]">😠</button>
+                <button class="emotion-tag" data-tag="[耳语]">🤐</button>
+                <button class="emotion-tag" data-tag="[大声]">📢</button>
+                <button class="emotion-tag" data-tag="[停顿]">⏸️</button>
+                <button class="emotion-tag" data-tag="[叹气]">😮‍💨</button>
+                <button class="emotion-tag" data-tag="[笑]">😄</button>
               </div>
             </div>
             <div class="form-group">
@@ -394,6 +415,36 @@
             </button>
             <div class="result-area hidden" id="instruct2Result">
               <div class="result-player" id="instruct2Player"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dialogue Panel -->
+      <section class="tab-panel" id="panel-dialogue">
+        <div class="panel-grid dialogue-layout">
+          <!-- Roles Panel -->
+          <div class="panel-card dialogue-roles-card">
+            <h2 class="card-title"><span class="card-icon">👥</span>角色管理</h2>
+            <p class="card-desc">为每个角色分配不同的声音</p>
+            <div id="dialogueRolesPanel"></div>
+          </div>
+
+          <!-- Dialogue Editor -->
+          <div class="panel-card dialogue-editor-card">
+            <h2 class="card-title"><span class="card-icon">📝</span>对话台本</h2>
+            <p class="card-desc">编排你的对话内容，每行一个角色发言</p>
+            <div id="dialogueEditor"></div>
+
+            <button class="generate-btn" id="dialogueGenBtn">
+              <span class="btn-shimmer"></span>
+              <span class="btn-text">🎭 合成对话</span>
+            </button>
+
+            <!-- Synthesis Progress -->
+            <div class="dialogue-result hidden" id="dialogueResult">
+              <div class="dialogue-progress" id="dialogueProgress"></div>
+              <div class="result-player" id="dialoguePlayer"></div>
             </div>
           </div>
         </div>

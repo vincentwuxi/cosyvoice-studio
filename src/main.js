@@ -12,6 +12,7 @@ import { saveToHistory, getHistoryList, getAudioBlob, formatHistoryTime, getMode
 import { saveVoiceProfile, getVoiceList, getVoiceAudio, getVoiceById, deleteVoiceProfile, syncFromFilesystem, exportVoiceLibrary, importVoiceLibrary } from './voicelib.js';
 import { runBatch, downloadBatchAsZip, estimateDuration } from './batch.js';
 import { wavToMp3, generateFileName } from './format.js';
+import { initDialogueMode, updateDialogueSpeakers } from './dialogue.js';
 
 // ============================
 // Constants
@@ -90,6 +91,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFormatSelector();
   initEngineSelector();
   initKeyboardShortcuts();
+  initEmotionTags();
+
+  // Toast bridge for dialogue.js
+  document.addEventListener('show-toast', (e) => {
+    showToast(e.detail.msg, e.detail.type);
+  });
 
   // Async: server check + smart mode detection + dynamic speakers
   await initServerCheck();
@@ -117,6 +124,10 @@ async function initServerCheck() {
     // Dynamic speaker grid
     if (serverInfo.available_spk_ids?.length > 0) {
       renderDynamicSpeakers(serverInfo.available_spk_ids);
+      // Init dialogue mode with available speakers
+      initDialogueMode(serverInfo.available_spk_ids);
+    } else {
+      initDialogueMode([]);
     }
   } else {
     el.classList.add('offline');
@@ -144,6 +155,8 @@ function applySmartModeDetection(info) {
   const allTabs = document.querySelectorAll('.tab-btn');
   allTabs.forEach(btn => {
     const tab = btn.dataset.tab;
+    // Dialogue tab uses SFT/ZeroShot — never disable it
+    if (tab === 'dialogue') return;
     if (!availableTabs.has(tab)) {
       btn.classList.add('disabled');
       btn.title = `当前模型不支持此功能`;
@@ -297,7 +310,7 @@ function initKeyboardShortcuts() {
     }
 
     // Ctrl+1~4 → Switch tabs
-    if ((e.ctrlKey || e.metaKey) && e.code >= 'Digit1' && e.code <= 'Digit4') {
+    if ((e.ctrlKey || e.metaKey) && e.code >= 'Digit1' && e.code <= 'Digit5') {
       e.preventDefault();
       const idx = parseInt(e.code.replace('Digit', '')) - 1;
       const btns = document.querySelectorAll('#tabNav .tab-btn');
@@ -305,6 +318,30 @@ function initKeyboardShortcuts() {
         btns[idx].click();
       }
     }
+  });
+}
+
+// ============================
+// Emotion Tag Insertion (P3)
+// ============================
+function initEmotionTags() {
+  document.querySelectorAll('.emotion-tag').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag;
+      const textarea = document.getElementById('instruct2TtsText');
+      if (!textarea) return;
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      textarea.value = text.slice(0, start) + tag + text.slice(end);
+      textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+      textarea.focus();
+
+      // Update char count
+      const charCount = document.getElementById('instruct2CharCount');
+      if (charCount) charCount.textContent = textarea.value.length;
+    });
   });
 }
 

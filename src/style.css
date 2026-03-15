@@ -1909,3 +1909,270 @@ body::before {
   }
 }
 
+/* ============================
+   P3: Emotion Tag Bar
+   ============================ */
+.emotion-tag-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.emotion-tag-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.emotion-tag {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emotion-tag:hover {
+  transform: scale(1.15);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ============================
+   P2: Dialogue Mode
+   ============================ */
+.dialogue-layout {
+  grid-template-columns: 280px 1fr;
+}
+
+.dialogue-roles-card {
+  position: sticky;
+  top: var(--space-md);
+  align-self: start;
+}
+
+.dialogue-role-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  border-left: 3px solid var(--primary);
+}
+
+.dialogue-role-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.dialogue-role-icon {
+  font-size: 1.2rem;
+}
+
+.dialogue-role-name {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 2px 4px;
+  outline: none;
+}
+
+.dialogue-role-name:focus {
+  border-color: var(--primary);
+}
+
+.dialogue-role-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.dialogue-role-remove:hover {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.dialogue-voice-select {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  outline: none;
+}
+
+.dialogue-add-role {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dialogue-add-role:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Dialogue Editor Lines */
+.dialogue-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+}
+
+.dialogue-line-role {
+  flex-shrink: 0;
+  width: 100px;
+}
+
+.dialogue-line-role-select {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font-size: 0.75rem;
+  padding: 4px;
+  outline: none;
+}
+
+.dialogue-line-text {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: var(--space-xs);
+  resize: vertical;
+  min-height: 40px;
+  font-family: inherit;
+}
+
+.dialogue-line-text:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.dialogue-line-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.dialogue-line-btn {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  width: 24px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.dialogue-line-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.dialogue-line-btn.remove:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.dialogue-line-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dialogue-add-line {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: var(--space-sm);
+}
+
+.dialogue-add-line:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Dialogue Progress & Result */
+.dialogue-result {
+  margin-top: var(--space-md);
+}
+
+.dialogue-result.hidden {
+  display: none;
+}
+
+.dialogue-progress {
+  margin-bottom: var(--space-md);
+}
+
+.dialogue-progress-item {
+  font-size: 0.8rem;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.dprog-status {
+  margin-left: var(--space-xs);
+}
+
+@media (max-width: 768px) {
+  .dialogue-layout {
+    grid-template-columns: 1fr;
+  }
+  .dialogue-roles-card {
+    position: static;
+  }
+  .dialogue-line {
+    flex-wrap: wrap;
+  }
+  .dialogue-line-role {
+    width: 100%;
+  }
+}
