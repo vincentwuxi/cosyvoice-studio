@@ -10,7 +10,8 @@
  * On init:  sync file system → IndexedDB (restore after cache clear)
  */
 
-import JSZip from 'jszip';
+// JSZip is loaded lazily via dynamic import() — only when export/import is triggered
+// This saves ~374KB from the initial bundle
 
 const VOICES_KEY = 'cosyvoice_voices';
 const DB_NAME = 'cosyvoice_db';
@@ -270,6 +271,7 @@ export async function exportVoiceLibrary() {
     throw new Error('声音库为空，没有可导出的内容');
   }
 
+  const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   const audioFolder = zip.folder('audio');
   const exportMeta = [];
@@ -296,6 +298,7 @@ export async function exportVoiceLibrary() {
  * @returns {{ imported: number, skipped: number }}
  */
 export async function importVoiceLibrary(zipFile) {
+  const { default: JSZip } = await import('jszip');
   const zip = await JSZip.loadAsync(zipFile);
   const metaFile = zip.file('voices.json');
   
