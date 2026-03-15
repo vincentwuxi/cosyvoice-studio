@@ -150,13 +150,43 @@
               <textarea class="form-textarea large" id="zeroShotTtsText" rows="5" placeholder="输入你想让 AI 用该音色说的话..."></textarea>
               <div class="char-count"><span id="zeroShotCharCount">0</span> 字</div>
             </div>
-            <button class="generate-btn" id="zeroShotGenBtn">
-              <span class="btn-shimmer"></span>
-              <span class="btn-text">🚀 生成克隆语音</span>
-            </button>
+            <div class="generate-row">
+              <button class="generate-btn" id="zeroShotGenBtn">
+                <span class="btn-shimmer"></span>
+                <span class="btn-text">🚀 生成克隆语音</span>
+              </button>
+              <button class="ab-compare-btn" id="abCompareBtn" title="同时用两个引擎生成，对比效果">
+                ⚡ A/B 对比
+              </button>
+            </div>
             <div class="result-area hidden" id="zeroShotResult">
               <div class="result-player" id="zeroShotPlayer"></div>
               <div class="result-engine-badge" id="resultEngineBadge"></div>
+            </div>
+            <!-- A/B Comparison Result -->
+            <div class="ab-result hidden" id="abResult">
+              <div class="ab-split">
+                <div class="ab-panel">
+                  <div class="ab-panel-header">
+                    <span class="ab-engine-tag cosyvoice">🎯 CosyVoice</span>
+                    <div class="ab-rating">
+                      <button class="ab-rate-btn" data-engine="cosyvoice" data-vote="up" title="更好">👍</button>
+                      <button class="ab-rate-btn" data-engine="cosyvoice" data-vote="down" title="较差">👎</button>
+                    </div>
+                  </div>
+                  <div class="ab-player" id="abPlayerCosyvoice"></div>
+                </div>
+                <div class="ab-panel">
+                  <div class="ab-panel-header">
+                    <span class="ab-engine-tag f5tts">⚡ F5-TTS</span>
+                    <div class="ab-rating">
+                      <button class="ab-rate-btn" data-engine="f5tts" data-vote="up" title="更好">👍</button>
+                      <button class="ab-rate-btn" data-engine="f5tts" data-vote="down" title="较差">👎</button>
+                    </div>
+                  </div>
+                  <div class="ab-player" id="abPlayerF5tts"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

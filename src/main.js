@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initBatchMode();
   initFormatSelector();
   initEngineSelector();
+  initKeyboardShortcuts();
 
   // Async: server check + smart mode detection + dynamic speakers
   await initServerCheck();
@@ -249,6 +250,61 @@ function initTabs() {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
     });
+  });
+}
+
+// ============================
+// Keyboard Shortcuts
+// ============================
+function initKeyboardShortcuts() {
+  const TAB_ORDER = ['zero-shot', 'sft', 'cross-lingual', 'instruct2'];
+  const TAB_CAMEL = ['zeroShot', 'sft', 'crossLingual', 'instruct2'];
+
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in input/textarea
+    const tag = document.activeElement?.tagName;
+    const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    // Space → Play/Pause current player (only when not typing)
+    if (e.code === 'Space' && !isTyping) {
+      e.preventDefault();
+      const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+      if (activeTab && players[activeTab]) {
+        players[activeTab].togglePlay();
+      }
+    }
+
+    // Ctrl+Enter → Generate (works even when typing)
+    if ((e.ctrlKey || e.metaKey) && e.code === 'Enter') {
+      e.preventDefault();
+      const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+      if (!activeTab) return;
+      const camel = TAB_CAMEL[TAB_ORDER.indexOf(activeTab)];
+      if (camel) {
+        const genBtn = document.getElementById(`${camel}GenBtn`);
+        if (genBtn && !genBtn.disabled) genBtn.click();
+      }
+    }
+
+    // Ctrl+S → Download current audio
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') {
+      e.preventDefault();
+      const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+      if (activeTab && players[activeTab]) {
+        players[activeTab].download();
+        showToast('💾 音频已下载', 'success');
+      }
+    }
+
+    // Ctrl+1~4 → Switch tabs
+    if ((e.ctrlKey || e.metaKey) && e.code >= 'Digit1' && e.code <= 'Digit4') {
+      e.preventDefault();
+      const idx = parseInt(e.code.replace('Digit', '')) - 1;
+      const btns = document.querySelectorAll('#tabNav .tab-btn');
+      if (btns[idx] && !btns[idx].classList.contains('disabled')) {
+        btns[idx].click();
+      }
+    }
   });
 }
 
@@ -515,6 +571,72 @@ function initGenerateButtons() {
         badge.className = 'result-engine-badge cosyvoice';
       }
     }
+  });
+
+  // A/B Comparison — concurrent dual-engine generation
+  document.getElementById('abCompareBtn')?.addEventListener('click', async () => {
+    const ttsText = document.getElementById('zeroShotTtsText').value.trim();
+    const promptText = document.getElementById('zeroShotPromptText').value.trim();
+    const promptWav = audioFiles['zero-shot'];
+
+    if (!ttsText) return showToast('请输入要合成的文字', 'error');
+    if (!promptWav) return showToast('请上传或录制参考音频', 'error');
+    if (!promptText) return showToast('请输入参考音频对应的文字（CosyVoice 需要）', 'error');
+
+    const abBtn = document.getElementById('abCompareBtn');
+    const abResult = document.getElementById('abResult');
+    const cosyPlayer = document.getElementById('abPlayerCosyvoice');
+    const f5Player = document.getElementById('abPlayerF5tts');
+
+    abBtn.disabled = true;
+    abBtn.textContent = '⏳ 对比中...';
+    abResult.classList.remove('hidden');
+    document.getElementById('zeroShotResult').classList.add('hidden');
+
+    // Show loading in both panels
+    cosyPlayer.innerHTML = '<div class="ab-loading">⏳ CosyVoice 生成中...</div>';
+    f5Player.innerHTML = '<div class="ab-loading">⏳ F5-TTS 生成中...</div>';
+
+    const f5Speed = parseFloat(document.getElementById('f5Speed')?.value || '1.0');
+    const f5Nfe = parseInt(document.getElementById('f5Nfe')?.value || '32');
+    const f5Remove = document.getElementById('f5RemoveSilence')?.checked || false;
+
+    // Run both engines concurrently
+    const [cosyResult, f5Result] = await Promise.allSettled([
+      callZeroShot(ttsText, promptText, promptWav, updateProgress),
+      callF5TTS(promptWav, promptText, ttsText, { speed: f5Speed, nfeSteps: f5Nfe, removeSilence: f5Remove }),
+    ]);
+
+    // Render CosyVoice result
+    if (cosyResult.status === 'fulfilled') {
+      if (players['ab-cosyvoice']) players['ab-cosyvoice'].destroy();
+      players['ab-cosyvoice'] = new AudioPlayer(cosyPlayer, cosyResult.value, { showTrim: false });
+    } else {
+      cosyPlayer.innerHTML = `<div class="ab-loading" style="color:#ef4444;">❌ ${cosyResult.reason?.message || '生成失败'}</div>`;
+    }
+
+    // Render F5-TTS result
+    if (f5Result.status === 'fulfilled') {
+      if (players['ab-f5tts']) players['ab-f5tts'].destroy();
+      players['ab-f5tts'] = new AudioPlayer(f5Player, f5Result.value, { showTrim: false });
+    } else {
+      f5Player.innerHTML = `<div class="ab-loading" style="color:#ef4444;">❌ ${f5Result.reason?.message || '生成失败'}</div>`;
+    }
+
+    abBtn.disabled = false;
+    abBtn.textContent = '⚡ A/B 对比';
+
+    // Rating buttons
+    abResult.querySelectorAll('.ab-rate-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Clear all voted in parent rating group
+        btn.closest('.ab-rating').querySelectorAll('.ab-rate-btn').forEach(b => b.classList.remove('voted'));
+        btn.classList.add('voted');
+        const engine = btn.dataset.engine;
+        const vote = btn.dataset.vote;
+        showToast(`已评价 ${engine === 'cosyvoice' ? 'CosyVoice' : 'F5-TTS'}: ${vote === 'up' ? '👍 更好' : '👎 较差'}`, 'success');
+      });
+    });
   });
 
   // SFT

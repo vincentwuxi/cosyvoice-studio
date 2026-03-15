@@ -670,11 +670,84 @@ body::before {
   background: var(--bg-primary);
   border-radius: var(--radius-sm);
   overflow: hidden;
+  position: relative;
+  cursor: crosshair;
 }
 
 .result-waveform canvas {
   width: 100%;
   height: 100%;
+}
+
+.waveform-selection {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(251, 191, 36, 0.15);
+  border-left: 2px solid rgba(251, 191, 36, 0.8);
+  border-right: 2px solid rgba(251, 191, 36, 0.8);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.waveform-playhead {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 3;
+  pointer-events: none;
+  transition: left 0.1s linear;
+}
+
+.trim-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-xs);
+}
+
+.trim-toolbar.hidden {
+  display: none;
+}
+
+.trim-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.trim-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.trim-keep:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.trim-delete:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.trim-info {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: auto;
 }
 
 .result-controls {
@@ -1700,3 +1773,139 @@ body::before {
   color: var(--accent-blue);
   border: 1px solid rgba(99, 102, 241, 0.3);
 }
+
+/* ============================
+   A/B Comparison
+   ============================ */
+.generate-row {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: stretch;
+}
+
+.generate-row .generate-btn {
+  flex: 1;
+}
+
+.ab-compare-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0 var(--space-lg);
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.ab-compare-btn:hover {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.ab-compare-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ab-result {
+  margin-top: var(--space-md);
+}
+
+.ab-result.hidden {
+  display: none;
+}
+
+.ab-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.ab-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.ab-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ab-engine-tag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.ab-engine-tag.cosyvoice {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--accent);
+}
+
+.ab-engine-tag.f5tts {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-blue);
+}
+
+.ab-rating {
+  display: flex;
+  gap: 4px;
+}
+
+.ab-rate-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ab-rate-btn:hover {
+  transform: scale(1.15);
+}
+
+.ab-rate-btn.voted {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.ab-player {
+  min-height: 60px;
+}
+
+.ab-player .result-waveform {
+  height: 60px;
+}
+
+.ab-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .ab-split {
+    grid-template-columns: 1fr;
+  }
+  .generate-row {
+    flex-direction: column;
+  }
+}
+
