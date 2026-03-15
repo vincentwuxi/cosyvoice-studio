@@ -72,23 +72,23 @@ export async function callF5TTS(refAudio, refText, genText, opts = {}) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       data: [
-        // ref_audio_input (filepath)
+        // 1. ref_audio_input (filepath)
         { path: uploadedPath, meta: { _type: 'gradio.FileData' } },
-        // gen_text_input
-        genText,
-        // ref_text_input  
+        // 2. ref_text_input (参考音频的文字，留空则 Whisper 自动识别)
         refText || '',
-        // remove_silence
+        // 3. gen_text_input (要合成的目标文字)
+        genText,
+        // 4. remove_silence
         removeSilence,
-        // randomize_seed
+        // 5. randomize_seed
         true,
-        // seed_input
+        // 6. seed_input
         0,
-        // cross_fade_duration
+        // 7. cross_fade_duration (秒)
         0.15,
-        // nfe_slider
+        // 8. nfe_slider
         nfeSteps,
-        // speed_slider
+        // 9. speed_slider
         speed,
       ],
     }),
